@@ -17,29 +17,29 @@ gauge_total_player_count = prometheus.gauge("factorio_total_player_count", "tota
 gauge_seed = prometheus.gauge("factorio_seed", "seed", { "surface" })
 gauge_mods = prometheus.gauge("factorio_mods", "mods", { "name", "version" })
 
-gauge_item_production_input = prometheus.gauge("factorio_item_production_input", "items produced", { "force", "name" })
+gauge_item_production_input = prometheus.gauge("factorio_item_production_input", "items produced", { "force", "surface", "name" })
 gauge_item_production_output =
-	prometheus.gauge("factorio_item_production_output", "items consumed", { "force", "name" })
+	prometheus.gauge("factorio_item_production_output", "items consumed", { "force", "surface", "name" })
 
 gauge_fluid_production_input =
-	prometheus.gauge("factorio_fluid_production_input", "fluids produced", { "force", "name" })
+	prometheus.gauge("factorio_fluid_production_input", "fluids produced", { "force", "surface", "name" })
 gauge_fluid_production_output =
-	prometheus.gauge("factorio_fluid_production_output", "fluids consumed", { "force", "name" })
+	prometheus.gauge("factorio_fluid_production_output", "fluids consumed", { "force", "surface", "name" })
 
-gauge_kill_count_input = prometheus.gauge("factorio_kill_count_input", "kills", { "force", "name" })
-gauge_kill_count_output = prometheus.gauge("factorio_kill_count_output", "losses", { "force", "name" })
+gauge_kill_count_input = prometheus.gauge("factorio_kill_count_input", "kills", { "force", "surface", "name" })
+gauge_kill_count_output = prometheus.gauge("factorio_kill_count_output", "losses", { "force", "surface", "name" })
 
 gauge_entity_build_count_input =
-	prometheus.gauge("factorio_entity_build_count_input", "entities placed", { "force", "name" })
+	prometheus.gauge("factorio_entity_build_count_input", "entities placed", { "force", "surface", "name" })
 gauge_entity_build_count_output =
-	prometheus.gauge("factorio_entity_build_count_output", "entities removed", { "force", "name" })
+	prometheus.gauge("factorio_entity_build_count_output", "entities removed", { "force", "surface", "name" })
 
 gauge_pollution_production_input =
-	prometheus.gauge("factorio_pollution_production_input", "pollutions produced", { "force", "name" })
+	prometheus.gauge("factorio_pollution_production_input", "pollutions produced", { "force", "surface", "name" })
 gauge_pollution_production_output =
-	prometheus.gauge("factorio_pollution_production_output", "pollutions consumed", { "force", "name" })
+	prometheus.gauge("factorio_pollution_production_output", "pollutions consumed", { "force", "surface", "name" })
 
-gauge_evolution = prometheus.gauge("factorio_evolution", "evolution", { "force", "type" })
+gauge_evolution = prometheus.gauge("factorio_evolution", "evolution", { "force", "surface", "type" })
 
 gauge_research_queue = prometheus.gauge("factorio_research_queue", "research", { "force", "name", "level", "index" })
 
@@ -125,9 +125,9 @@ gauge_power_production_output =
 	prometheus.gauge("factorio_power_production_output", "power consumed", { "force", "name", "network", "surface" })
 
 script.on_init(function()
-	if game.active_mods["YARM"] then
-		global.yarm_on_site_update_event_id = remote.call("YARM", "get_on_site_updated_event_id")
-		script.on_event(global.yarm_on_site_update_event_id, handleYARM)
+	if script.active_mods["YARM"] then
+		storage.yarm_on_site_update_event_id = remote.call("YARM", "get_on_site_updated_event_id")
+		script.on_event(storage.yarm_on_site_update_event_id, handleYARM)
 	end
 
 	on_power_init()
@@ -159,9 +159,9 @@ script.on_init(function()
 end)
 
 script.on_load(function()
-	if global.yarm_on_site_update_event_id then
-		if script.get_event_handler(global.yarm_on_site_update_event_id) then
-			script.on_event(global.yarm_on_site_update_event_id, handleYARM)
+	if storage.yarm_on_site_update_event_id then
+		if script.get_event_handler(storage.yarm_on_site_update_event_id) then
+			script.on_event(storage.yarm_on_site_update_event_id, handleYARM)
 		end
 	end
 
@@ -194,8 +194,8 @@ script.on_load(function()
 end)
 
 script.on_configuration_changed(function(event)
-	if game.active_mods["YARM"] then
-		global.yarm_on_site_update_event_id = remote.call("YARM", "get_on_site_updated_event_id")
-		script.on_event(global.yarm_on_site_update_event_id, handleYARM)
+	if script.active_mods["YARM"] then
+		storage.yarm_on_site_update_event_id = remote.call("YARM", "get_on_site_updated_event_id")
+		script.on_event(storage.yarm_on_site_update_event_id, handleYARM)
 	end
 end)

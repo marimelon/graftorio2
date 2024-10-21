@@ -5,46 +5,47 @@ function register_events(event)
 		gauge_seed:set(surface.map_gen_settings.seed, { surface.name })
 	end
 
-	for name, version in pairs(game.active_mods) do
+	for name, version in pairs(script.active_mods) do
 		gauge_mods:set(1, { name, version })
 	end
 
 	for _, player in pairs(game.players) do
-		stats = {
-			{ player.force.item_production_statistics, gauge_item_production_input, gauge_item_production_output },
-			{ player.force.fluid_production_statistics, gauge_fluid_production_input, gauge_fluid_production_output },
-			{ player.force.kill_count_statistics, gauge_kill_count_input, gauge_kill_count_output },
-			{
-				player.force.entity_build_count_statistics,
-				gauge_entity_build_count_input,
-				gauge_entity_build_count_output,
-			},
-			{
-				game.pollution_statistics,
-				gauge_pollution_production_input,
-				gauge_pollution_production_output,
-			},
-		}
-
-		for _, stat in pairs(stats) do
-			for name, n in pairs(stat[1].input_counts) do
-				stat[2]:set(n, { player.force.name, name })
+		for _, surface in pairs(game.surfaces) do
+			stats = {
+				{ player.force.get_item_production_statistics(surface), gauge_item_production_input, gauge_item_production_output },
+				{ player.force.get_fluid_production_statistics(surface), gauge_fluid_production_input, gauge_fluid_production_output },
+				{ player.force.get_kill_count_statistics(surface), gauge_kill_count_input, gauge_kill_count_output },
+				{
+					player.force.get_entity_build_count_statistics(surface),
+					gauge_entity_build_count_input,
+					gauge_entity_build_count_output,
+				},
+				{
+					game.get_pollution_statistics(surface),
+					gauge_pollution_production_input,
+					gauge_pollution_production_output,
+				},
+			}
+			for _, stat in pairs(stats) do
+				for name, n in pairs(stat[1].input_counts) do
+					stat[2]:set(n, { player.force.name, surface.name, name })
+				end
+				
+				for name, n in pairs(stat[1].output_counts) do
+					stat[3]:set(n, { player.force.name, surface.name, name })
+				end
 			end
-
-			for name, n in pairs(stat[1].output_counts) do
-				stat[3]:set(n, { player.force.name, name })
+			
+			evolution = {
+				{ player.force.get_evolution_factor(surface), "total" },
+				{ player.force.get_evolution_factor_by_pollution(surface), "by_pollution" },
+				{ player.force.get_evolution_factor_by_time(surface), "by_time" },
+				{ player.force.get_evolution_factor_by_killing_spawners(surface), "by_killing_spawners" },
+			}
+			
+			for _, stat in pairs(evolution) do
+				gauge_evolution:set(stat[1], { player.force.name, surface.name, stat[2] })
 			end
-		end
-
-		evolution = {
-			{ player.force.evolution_factor, "total" },
-			{ player.force.evolution_factor_by_pollution, "by_pollution" },
-			{ player.force.evolution_factor_by_time, "by_time" },
-			{ player.force.evolution_factor_by_killing_spawners, "by_killing_spawners" },
-		}
-
-		for _, stat in pairs(evolution) do
-			gauge_evolution:set(stat[1], { player.force.name, stat[2] })
 		end
 
 		for name, n in pairs(player.force.items_launched) do
@@ -92,9 +93,9 @@ function register_events(event)
 	on_power_tick(event)
 
 	if server_save then
-		game.write_file("graftorio2/game.prom", prometheus.collect(), false, 0)
+		helpers.write_file("graftorio2/game.prom", prometheus.collect(), false, 0)
 	else
-		game.write_file("graftorio2/game.prom", prometheus.collect(), false)
+		helpers.write_file("graftorio2/game.prom", prometheus.collect(), false)
 	end
 end
 
